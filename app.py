@@ -15,6 +15,8 @@ if "hint_used" not in st.session_state:
     st.session_state.hint_used = False
 if "jawaban_benar" not in st.session_state:
     st.session_state.jawaban_benar = 0
+if "soal_sudah_dijawab" not in st.session_state:
+    st.session_state.soal_sudah_dijawab = False
 
 # Data mode 1: Tebak nama unsur
 unsur_data = [
@@ -30,8 +32,9 @@ unsur_data = [
     {"simbol": "Ca", "nama": "Kalsium"},
 ]
 
-# Data mode 2 dan 3 tetap
-# ... [data mode 2 dan 3 tidak diubah]
+# Puzzle dan Bingo Data Placeholder (harus ditambahkan sama seperti sebelumnya)
+puzzle_data = []
+bingo_data = []
 
 # Halaman Menu
 if st.session_state.halaman == "menu":
@@ -46,14 +49,17 @@ if st.session_state.halaman == "menu":
         if st.button("Mulai Game 1"):
             st.session_state.mode = 1
             st.session_state.halaman = "main"
+            st.session_state.soal_sudah_dijawab = False
     with col2:
         if st.button("Mulai Game 2"):
             st.session_state.mode = 2
             st.session_state.halaman = "main"
+            st.session_state.soal_sudah_dijawab = False
     with col3:
         if st.button("Mulai Game 3"):
             st.session_state.mode = 3
             st.session_state.halaman = "main"
+            st.session_state.soal_sudah_dijawab = False
 
 # Halaman Main Game
 if st.session_state.halaman == "main":
@@ -65,7 +71,6 @@ if st.session_state.halaman == "main":
 
     soal = None
     pilihan = []
-    jawaban = ""
 
     if st.session_state.mode == 1:
         soal = random.choice(unsur_data)
@@ -73,38 +78,38 @@ if st.session_state.halaman == "main":
         pilihan.append(soal["nama"])
         random.shuffle(pilihan)
         st.subheader(f"Apa nama unsur dari simbol '{soal['simbol']}'?")
-        jawaban = st.radio("", pilihan)
 
     elif st.session_state.mode == 2:
         soal = puzzle_data[st.session_state.round - 1]
         pilihan = soal["opsi"][:]
         random.shuffle(pilihan)
         st.subheader(soal["deskripsi"])
-        jawaban = st.radio("Pilih jawaban:", pilihan)
 
     elif st.session_state.mode == 3:
         soal = bingo_data[st.session_state.round - 1]
         pilihan = soal["opsi"][:]
         random.shuffle(pilihan)
         st.subheader(f"📘 {soal['deskripsi']}")
-        jawaban = st.radio("Istilah Kimia:", pilihan)
 
-    if st.button("Kirim Jawaban"):
-        benar = False
-        if st.session_state.mode == 1:
-            benar = (jawaban == soal["nama"])
-        elif st.session_state.mode == 2:
-            benar = (jawaban == soal["jawaban"])
-        elif st.session_state.mode == 3:
-            benar = (jawaban == soal["istilah"])
+    selected = st.radio("Pilih jawaban:", pilihan, key=f"jawaban_{st.session_state.round}")
+    if not st.session_state.soal_sudah_dijawab:
+        if st.button("Kirim Jawaban"):
+            benar = False
+            if st.session_state.mode == 1:
+                benar = (selected == soal["nama"])
+            elif st.session_state.mode == 2:
+                benar = (selected == soal["jawaban"])
+            elif st.session_state.mode == 3:
+                benar = (selected == soal["istilah"])
 
-        if benar:
-            st.session_state.score += 10
-            st.session_state.jawaban_benar += 1
-        st.session_state.round += 1
+            if benar:
+                st.session_state.score += 10
+                st.session_state.jawaban_benar += 1
 
-    if st.session_state.round > 10:
-        st.session_state.halaman = "hasil"
+            st.session_state.round += 1
+            st.session_state.soal_sudah_dijawab = True
+            if st.session_state.round > 10:
+                st.session_state.halaman = "hasil"
 
 # Halaman Hasil
 if st.session_state.halaman == "hasil":
@@ -117,3 +122,4 @@ if st.session_state.halaman == "hasil":
         st.session_state.round = 1
         st.session_state.jawaban_benar = 0
         st.session_state.hint_used = False
+        st.session_state.soal_sudah_dijawab = False
