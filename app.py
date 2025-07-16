@@ -44,4 +44,4 @@ def halaman_mulai():
     banner = Image.open("assets/banner.png")
     st.image(banner, use_container_width=True)
 
-    st.markdown("<h1 style='text-align:center;'>🎮 Periodic Table Quiz</h1>", unsafe_allow_
+    st.markdown("<h1 style='text-align:center;'>🎮 Periodic Table Quiz</h1>", unsafe_allow_html=True)
