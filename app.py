@@ -32,7 +32,7 @@ unsur_data = [
     {"simbol": "Ca", "nama": "Kalsium"},
 ]
 
-# Puzzle dan Bingo Data Placeholder (harus ditambahkan sama seperti sebelumnya)
+# Placeholder data mode 2 dan 3 (isi sesuai data sebelumnya jika ada)
 puzzle_data = []
 bingo_data = []
 
@@ -69,6 +69,10 @@ if st.session_state.halaman == "main":
         time.sleep(0.05)
         bar.progress((i + 1) / 30)
 
+    if st.session_state.soal_sudah_dijawab:
+        st.info("Jawaban sudah dikirim. Tunggu babak berikutnya...")
+        st.stop()
+
     soal = None
     pilihan = []
 
@@ -92,24 +96,28 @@ if st.session_state.halaman == "main":
         st.subheader(f"📘 {soal['deskripsi']}")
 
     selected = st.radio("Pilih jawaban:", pilihan, key=f"jawaban_{st.session_state.round}")
-    if not st.session_state.soal_sudah_dijawab:
-        if st.button("Kirim Jawaban"):
-            benar = False
-            if st.session_state.mode == 1:
-                benar = (selected == soal["nama"])
-            elif st.session_state.mode == 2:
-                benar = (selected == soal["jawaban"])
-            elif st.session_state.mode == 3:
-                benar = (selected == soal["istilah"])
 
-            if benar:
-                st.session_state.score += 10
-                st.session_state.jawaban_benar += 1
+    if st.button("Kirim Jawaban") and not st.session_state.soal_sudah_dijawab:
+        benar = False
+        if st.session_state.mode == 1:
+            benar = (selected == soal["nama"])
+        elif st.session_state.mode == 2:
+            benar = (selected == soal["jawaban"])
+        elif st.session_state.mode == 3:
+            benar = (selected == soal["istilah"])
 
+        if benar:
+            st.session_state.score += 10
+            st.session_state.jawaban_benar += 1
+
+        st.session_state.soal_sudah_dijawab = True
+
+        if st.session_state.round == 10:
+            st.session_state.halaman = "hasil"
+        else:
             st.session_state.round += 1
-            st.session_state.soal_sudah_dijawab = True
-            if st.session_state.round > 10:
-                st.session_state.halaman = "hasil"
+            st.session_state.soal_sudah_dijawab = False
+            st.experimental_rerun()
 
 # Halaman Hasil
 if st.session_state.halaman == "hasil":
