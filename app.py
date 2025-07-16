@@ -2,137 +2,163 @@ import streamlit as st
 import random
 import time
 
-# ---------------------------- DATA ----------------------------
-data_unsur = [
+# ----------------- DATA -----------------
+unsur_data = [
     {"simbol": "H", "nama": "Hidrogen"},
     {"simbol": "O", "nama": "Oksigen"},
-    {"simbol": "N", "nama": "Nitrogen"},
-    {"simbol": "C", "nama": "Karbon"},
     {"simbol": "Na", "nama": "Natrium"},
     {"simbol": "Cl", "nama": "Klor"},
+    {"simbol": "C", "nama": "Karbon"},
+    {"simbol": "N", "nama": "Nitrogen"},
     {"simbol": "Fe", "nama": "Besi"},
     {"simbol": "Ca", "nama": "Kalsium"},
     {"simbol": "K", "nama": "Kalium"},
-    {"simbol": "Mg", "nama": "Magnesium"},
+    {"simbol": "Mg", "nama": "Magnesium"}
 ]
 
-soal_puzzle = [
+puzzle_data = [
     {"potongan": ["H", "2", "O"], "jawaban": "H2O"},
+    {"potongan": ["Na", "Cl"], "jawaban": "NaCl"},
     {"potongan": ["C", "O", "2"], "jawaban": "CO2"},
-    {"potongan": ["N", "H", "3"], "jawaban": "NH3"},
-    {"potongan": ["C", "H", "4"], "jawaban": "CH4"},
-    {"potongan": ["H", "2", "S"], "jawaban": "H2S"},
+    {"potongan": ["NH", "3"], "jawaban": "NH3"},
+    {"potongan": ["CH", "4"], "jawaban": "CH4"},
+    {"potongan": ["H", "2", "SO", "4"], "jawaban": "H2SO4"},
+    {"potongan": ["Na", "OH"], "jawaban": "NaOH"},
+    {"potongan": ["Ca", "CO", "3"], "jawaban": "CaCO3"},
+    {"potongan": ["H", "Cl"], "jawaban": "HCl"},
+    {"potongan": ["K", "MnO", "4"], "jawaban": "KMnO4"},
 ]
 
-soal_bingo = [
-    {"istilah": "H2O", "deskripsi": "Senyawa air"},
-    {"istilah": "CO2", "deskripsi": "Gas rumah kaca"},
-    {"istilah": "NaCl", "deskripsi": "Garam dapur"},
-    {"istilah": "CH4", "deskripsi": "Gas metana"},
-    {"istilah": "NH3", "deskripsi": "Amonia"},
+bingo_data = [
+    {"pertanyaan": "Simbol unsur Natrium?", "jawaban": "Na"},
+    {"pertanyaan": "Rumus air?", "jawaban": "H2O"},
+    {"pertanyaan": "Rumus garam dapur?", "jawaban": "NaCl"},
+    {"pertanyaan": "Rumus karbon dioksida?", "jawaban": "CO2"},
+    {"pertanyaan": "Simbol unsur Besi?", "jawaban": "Fe"},
+    {"pertanyaan": "Simbol unsur Kalsium?", "jawaban": "Ca"},
+    {"pertanyaan": "Rumus amonia?", "jawaban": "NH3"},
+    {"pertanyaan": "Simbol unsur Oksigen?", "jawaban": "O"},
+    {"pertanyaan": "Simbol unsur Kalium?", "jawaban": "K"},
+    {"pertanyaan": "Rumus asam sulfat?", "jawaban": "H2SO4"},
 ]
 
-# ---------------------------- STATE ----------------------------
-if "mode" not in st.session_state:
-    st.session_state.mode = "menu"
-if "soal_index" not in st.session_state:
-    st.session_state.soal_index = 0
+# ----------------- SESSION STATE -----------------
+if "halaman" not in st.session_state:
+    st.session_state.halaman = "menu"
 if "score" not in st.session_state:
     st.session_state.score = 0
+if "round" not in st.session_state:
+    st.session_state.round = 0
+if "jawaban_benar" not in st.session_state:
+    st.session_state.jawaban_benar = 0
 
-# ---------------------------- FUNCTIONS ----------------------------
-def reset_game():
-    st.session_state.soal_index = 0
-    st.session_state.score = 0
+# ----------------- HALAMAN -----------------
+def halaman_menu():
+    st.title("🧪 Chemistry Mini Quiz")
+    st.markdown("""
+        Pilih mode permainan:
+        - **Mode 1**: Tebak nama unsur dari simbol.
+        - **Mode 2**: Susun potongan senyawa.
+        - **Mode 3**: Bingo istilah dan rumus kimia.
+    """)
+    if st.button("🔤 Mode 1: Tebak Unsur"):
+        st.session_state.halaman = "mode1"
+        st.session_state.score = 0
+        st.session_state.round = 0
+    elif st.button("🧩 Mode 2: Puzzle Senyawa"):
+        st.session_state.halaman = "mode2"
+        st.session_state.score = 0
+        st.session_state.round = 0
+    elif st.button("🎯 Mode 3: Bingo Kimia"):
+        st.session_state.halaman = "mode3"
+        st.session_state.score = 0
+        st.session_state.round = 0
 
-def menu():
-    st.title("🧪 Chemistry Mini Games")
-    st.write("Pilih mode permainan:")
-    if st.button("1️⃣ Tebak Unsur dari Simbol"):
-        reset_game()
-        st.session_state.mode = "game1"
-    if st.button("2️⃣ Susun Potongan Senyawa"):
-        reset_game()
-        st.session_state.mode = "game2"
-    if st.button("3️⃣ Kartu Bingo Kimia"):
-        reset_game()
-        st.session_state.mode = "game3"
+# ----------------- MODE 1 -----------------
+def halaman_mode1():
+    st.subheader(f"Babak {st.session_state.round + 1} dari 10")
+    soal = random.choice(unsur_data)
+    opsi = random.sample([x["nama"] for x in unsur_data if x["nama"] != soal["nama"]], 3)
+    opsi.append(soal["nama"])
+    random.shuffle(opsi)
 
-def game1():
-    soal = random.choice(data_unsur)
-    pilihan = random.sample(data_unsur, 3)
-    if soal not in pilihan:
-        pilihan[random.randint(0,2)] = soal
-    st.subheader(f"Babak {st.session_state.soal_index+1} dari 10")
-    st.markdown(f"### Apa nama unsur dari simbol **{soal['simbol']}**?")
-    jawaban = st.radio("Pilih jawaban:", [p["nama"] for p in pilihan])
+    st.markdown(f"**Simbol: {soal['simbol']}**")
+    jawaban = st.radio("Pilih nama unsur:", opsi, key=f"radio1_{st.session_state.round}")
 
-    if st.button("Jawab"):
+    if st.button("Kirim Jawaban"):
         if jawaban == soal["nama"]:
+            st.success("Jawaban benar!")
+            st.session_state.score += 10
+            st.session_state.jawaban_benar += 1
+        else:
+            st.error(f"Salah. Jawaban benar: {soal['nama']}")
+        st.session_state.round += 1
+
+    if st.session_state.round >= 10:
+        st.session_state.halaman = "hasil"
+
+# ----------------- MODE 2 -----------------
+def halaman_mode2():
+    st.subheader(f"Babak {st.session_state.round + 1} dari 10")
+    soal = puzzle_data[st.session_state.round]
+    potongan = soal["potongan"]
+    st.markdown("Susun potongan berikut menjadi satu rumus senyawa yang benar:")
+    st.markdown(" + ".join(potongan))
+
+    jawaban = st.text_input("Masukkan rumus senyawa lengkap (contoh: H2O):", key=f"puzzle_{st.session_state.round}")
+
+    if st.button("Kirim Jawaban"):
+        if jawaban.strip() == soal["jawaban"]:
+            st.success("Jawaban benar!")
+            st.session_state.score += 10
+            st.session_state.jawaban_benar += 1
+        else:
+            st.error(f"Jawaban salah. Benar: {soal['jawaban']}")
+        st.session_state.round += 1
+
+    if st.session_state.round >= 10:
+        st.session_state.halaman = "hasil"
+
+# ----------------- MODE 3 -----------------
+def halaman_mode3():
+    st.subheader(f"Babak {st.session_state.round + 1} dari 10")
+    soal = bingo_data[st.session_state.round]
+    st.markdown(f"❓ {soal['pertanyaan']}")
+    jawaban = st.text_input("Jawaban kamu:", key=f"bingo_{st.session_state.round}")
+
+    if st.button("Kirim Jawaban"):
+        if jawaban.strip() == soal["jawaban"]:
             st.success("Benar!")
             st.session_state.score += 10
+            st.session_state.jawaban_benar += 1
         else:
-            st.error(f"Salah. Jawaban: {soal['nama']}")
+            st.error(f"Jawaban salah. Benar: {soal['jawaban']}")
+        st.session_state.round += 1
 
-        next_soal()
+    if st.session_state.round >= 10:
+        st.session_state.halaman = "hasil"
 
-def game2():
-    soal = soal_puzzle[st.session_state.soal_index % len(soal_puzzle)]
-    st.subheader(f"Babak {st.session_state.soal_index+1} dari 10")
-    st.markdown("### Susun potongan berikut menjadi senyawa yang benar:")
-    st.write(" + ".join(soal["potongan"]))
+# ----------------- HASIL -----------------
+def halaman_hasil():
+    st.balloons()
+    st.title("🎉 Permainan Selesai!")
+    st.markdown(f"**Skor Akhir: {st.session_state.score} dari 100**")
+    st.markdown(f"✅ Jawaban benar: {st.session_state.jawaban_benar} dari 10")
+    st.markdown("---")
+    if st.button("🔁 Main Lagi"):
+        st.session_state.halaman = "menu"
+        st.session_state.score = 0
+        st.session_state.round = 0
+        st.session_state.jawaban_benar = 0
 
-    pilihan = [soal["jawaban"], "HO2", "H2", "OH2"]
-    random.shuffle(pilihan)
-    jawaban = st.radio("Pilih senyawa:", pilihan)
-
-    if st.button("Jawab"):
-        if jawaban == soal["jawaban"]:
-            st.success("Benar!")
-            st.session_state.score += 10
-        else:
-            st.error(f"Salah. Jawaban: {soal['jawaban']}")
-        next_soal()
-
-def game3():
-    soal = soal_bingo[st.session_state.soal_index % len(soal_bingo)]
-    st.subheader(f"Babak {st.session_state.soal_index+1} dari 10")
-    st.markdown(f"### {soal['deskripsi']}")
-
-    pilihan = [soal["istilah"], "H2", "C6H12O6", "Na2SO4"]
-    random.shuffle(pilihan)
-    jawaban = st.radio("Pilih istilah/rumus yang sesuai:", pilihan)
-
-    if st.button("Jawab"):
-        if jawaban == soal["istilah"]:
-            st.success("Benar!")
-            st.session_state.score += 10
-        else:
-            st.error(f"Salah. Jawaban: {soal['istilah']}")
-        next_soal()
-
-def next_soal():
-    time.sleep(1)
-    st.session_state.soal_index += 1
-    if st.session_state.soal_index >= 10:
-        st.session_state.mode = "hasil"
-    else:
-        st.experimental_rerun()
-
-def hasil():
-    st.title("🏁 Permainan Selesai!")
-    st.write(f"Skor akhir kamu: **{st.session_state.score} / 100**")
-    if st.button("Kembali ke Menu"):
-        st.session_state.mode = "menu"
-
-# ---------------------------- ROUTER ----------------------------
-if st.session_state.mode == "menu":
-    menu()
-elif st.session_state.mode == "game1":
-    game1()
-elif st.session_state.mode == "game2":
-    game2()
-elif st.session_state.mode == "game3":
-    game3()
-elif st.session_state.mode == "hasil":
-    hasil()
+# ----------------- ROUTING -----------------
+if st.session_state.halaman == "menu":
+    halaman_menu()
+elif st.session_state.halaman == "mode1":
+    halaman_mode1()
+elif st.session_state.halaman == "mode2":
+    halaman_mode2()
+elif st.session_state.halaman == "mode3":
+    halaman_mode3()
+elif st.session_state.halaman == "hasil":
+    halaman_hasil()
