@@ -17,6 +17,10 @@ if "jawaban_benar" not in st.session_state:
     st.session_state.jawaban_benar = 0
 if "soal_sudah_dijawab" not in st.session_state:
     st.session_state.soal_sudah_dijawab = False
+if "soal" not in st.session_state:
+    st.session_state.soal = None
+if "soal_round" not in st.session_state:
+    st.session_state.soal_round = 0
 
 # Data mode 1: Tebak nama unsur
 unsur_data = [
@@ -32,7 +36,7 @@ unsur_data = [
     {"simbol": "Ca", "nama": "Kalsium"},
 ]
 
-# Placeholder data mode 2 dan 3 (isi sesuai data sebelumnya jika ada)
+# Puzzle dan Bingo Data Placeholder (harus ditambahkan sama seperti sebelumnya)
 puzzle_data = []
 bingo_data = []
 
@@ -69,15 +73,14 @@ if st.session_state.halaman == "main":
         time.sleep(0.05)
         bar.progress((i + 1) / 30)
 
-    if st.session_state.soal_sudah_dijawab:
-        st.info("Jawaban sudah dikirim. Tunggu babak berikutnya...")
-        st.stop()
-
     soal = None
     pilihan = []
 
     if st.session_state.mode == 1:
-        soal = random.choice(unsur_data)
+        if st.session_state.soal is None or st.session_state.soal_round != st.session_state.round:
+            st.session_state.soal = random.choice(unsur_data)
+            st.session_state.soal_round = st.session_state.round
+        soal = st.session_state.soal
         pilihan = random.sample([u["nama"] for u in unsur_data if u != soal], 3)
         pilihan.append(soal["nama"])
         random.shuffle(pilihan)
@@ -97,27 +100,29 @@ if st.session_state.halaman == "main":
 
     selected = st.radio("Pilih jawaban:", pilihan, key=f"jawaban_{st.session_state.round}")
 
-    if st.button("Kirim Jawaban") and not st.session_state.soal_sudah_dijawab:
-        benar = False
-        if st.session_state.mode == 1:
-            benar = (selected == soal["nama"])
-        elif st.session_state.mode == 2:
-            benar = (selected == soal["jawaban"])
-        elif st.session_state.mode == 3:
-            benar = (selected == soal["istilah"])
+    if not st.session_state.soal_sudah_dijawab:
+        if st.button("Kirim Jawaban"):
+            benar = False
+            if st.session_state.mode == 1:
+                benar = (selected == soal["nama"])
+            elif st.session_state.mode == 2:
+                benar = (selected == soal["jawaban"])
+            elif st.session_state.mode == 3:
+                benar = (selected == soal["istilah"])
 
-        if benar:
-            st.session_state.score += 10
-            st.session_state.jawaban_benar += 1
+            if benar:
+                st.session_state.score += 10
+                st.session_state.jawaban_benar += 1
 
-        st.session_state.soal_sudah_dijawab = True
+            st.session_state.soal_sudah_dijawab = True
 
-        if st.session_state.round == 10:
-            st.session_state.halaman = "hasil"
-        else:
-            st.session_state.round += 1
-            st.session_state.soal_sudah_dijawab = False
-            st.experimental_rerun()
+            if st.session_state.round == 10:
+                st.session_state.halaman = "hasil"
+            else:
+                st.session_state.round += 1
+                st.session_state.soal = None
+                st.session_state.soal_sudah_dijawab = False
+                st.experimental_rerun()
 
 # Halaman Hasil
 if st.session_state.halaman == "hasil":
@@ -131,3 +136,5 @@ if st.session_state.halaman == "hasil":
         st.session_state.jawaban_benar = 0
         st.session_state.hint_used = False
         st.session_state.soal_sudah_dijawab = False
+        st.session_state.soal = None
+        st.session_state.soal_round = 0
